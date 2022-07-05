@@ -17,7 +17,7 @@ private:
     EPDGUI_Button *_key[9];     // Add 1 here as you add more apps or icons
     M5EPD_Canvas *_bar;
     M5EPD_Canvas *_names;
-    M5EPD_Canvas *_name_single;
+    M5EPD_Canvas *_name_single;     // Custom canvas added for just one icon space (blukiihub)
     uint32_t _next_update_time;
     uint32_t _time;
 };
