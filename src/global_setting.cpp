@@ -318,7 +318,8 @@ void Shutdown()
 {
     log_d("Now the system is shutting down.");
     M5.EPD.Clear();
-    M5.EPD.WritePartGram4bpp(92, 182, 356, 300, ImageResource_logo_356x300);
+    //M5.EPD.WritePartGram4bpp(92, 182, 356, 300, ImageResource_logo_356x300);
+    M5.EPD.WritePartGram4bpp(92, 182, 356, 194, ImageResource_blukiihub_logo_356x194);
     M5.EPD.UpdateFull(UPDATE_MODE_GC16);
     M5.EPD.UpdateFull(UPDATE_MODE_GC16);
     SaveSetting();
