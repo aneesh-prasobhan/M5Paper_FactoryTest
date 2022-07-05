@@ -164,6 +164,9 @@ void SysInit_Start(void)
         EPDGUI_AddFrame("Frame_Compare", frame_compare);
         Frame_Home *frame_home = new Frame_Home();
         EPDGUI_AddFrame("Frame_Home", frame_home);
+        //Added
+        Frame_BlukiiHub *frame_blukiihub = new Frame_BlukiiHub();
+        EPDGUI_AddFrame("Frame_BlukiiHub", frame_blukiihub);
 
         if(isWiFiConfiged())
         {

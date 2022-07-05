@@ -7,6 +7,7 @@
 #include "frame_fileindex.h"
 #include "frame_compare.h"
 #include "frame_home.h"
+#include "frame_blukiihub.h"
 
 enum
 {
@@ -17,7 +18,8 @@ enum
     kKeySDFile,
     kKeyCompare,
     kKeyHome,
-    kKeyLifeGame
+    kKeyLifeGame,
+    kKeyBlukiiHub
 };
 
 #define KEY_W 92
@@ -114,6 +116,18 @@ void key_home_cb(epdgui_args_vector_t &args)
     *((int*)(args[0])) = 0;
 }
 
+//blukiiHub
+void key_blukiihub_cb(epdgui_args_vector_t &args)
+{
+    Frame_Base *frame = EPDGUI_GetFrame("Frame_BlukiiHub");
+    if(frame == NULL)
+    {
+        frame = new Frame_BlukiiHub();
+        EPDGUI_AddFrame("Frame_BlukiiHub", frame);
+    }
+    EPDGUI_PushFrame(frame);
+    *((int*)(args[0])) = 0;
+}
 
 Frame_Main::Frame_Main(void): Frame_Base(false)
 {
@@ -127,6 +141,11 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
     _names = new M5EPD_Canvas(&M5.EPD);
     _names->createCanvas(540, 32);
     _names->setTextDatum(CC_DATUM);
+
+    //Creating custom canvas with 1 icon length to not over write the Engine wallpaper area
+    _name_single = new M5EPD_Canvas(&M5.EPD);
+    _name_single->createCanvas(135, 32);
+    _name_single->setTextDatum(CC_DATUM);
     
     for(int i = 0; i < 4; i++)
     {
@@ -136,6 +155,11 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
     for(int i = 0; i < 4; i++)
     {
         _key[i + 4] = new EPDGUI_Button("测试", 20 + i * 136, 240, KEY_W, KEY_H);
+    }
+
+    for(int i = 0; i < 1; i++)
+    {
+        _key[i + 8] = new EPDGUI_Button("测试", 20 + i * 136, 390, KEY_W, KEY_H);
     }
 
     _key[kKeySetting]->CanvasNormal()->pushImage(0, 0, 92, 92, ImageResource_main_icon_setting_92x92);
@@ -186,12 +210,12 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
     _key[kKeyHome]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
     _key[kKeyHome]->Bind(EPDGUI_Button::EVENT_RELEASED, key_home_cb);
 
-// Custom APP Beginning
-    // _key[kKeyWifiScan]->CanvasNormal()->pushImage(0, 0, 92, 92, ImageResource_main_icon_blukiihub_92x92);
-    // *(_key[kKeyWifiScan]->CanvasPressed()) = *(_key[kKeyWifiScan]->CanvasNormal());
-    // _key[kKeyWifiScan]->CanvasPressed()->ReverseColor();
-    // _key[kKeyWifiScan]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
-    // _key[kKeyWifiScan]->Bind(EPDGUI_Button::EVENT_RELEASED, key_wifiscan_cb);
+    // Custom APP Beginning
+    _key[kKeyBlukiiHub]->CanvasNormal()->pushImage(0, 0, 92, 92, ImageResource_main_icon_blukiihub_92x92);
+    *(_key[kKeyBlukiiHub]->CanvasPressed()) = *(_key[kKeyBlukiiHub]->CanvasNormal());
+    _key[kKeyBlukiiHub]->CanvasPressed()->ReverseColor();
+    _key[kKeyBlukiiHub]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
+    _key[kKeyBlukiiHub]->Bind(EPDGUI_Button::EVENT_RELEASED, key_blukiihub_cb);
 
 
     _time = 0;
@@ -201,7 +225,7 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
 
 Frame_Main::~Frame_Main(void)
 {
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 9; i++)
     {
         delete _key[i];
     }
@@ -213,7 +237,18 @@ void Frame_Main::AppName(m5epd_update_mode_t mode)
     {
         _names->createRender(20, 26);
     }
+
+
+    //Added new
+    if(!_name_single->isRenderExist(20))
+    {
+        _name_single->createRender(20, 26);
+    }
+
     _names->setTextSize(20);
+    _name_single->setTextSize(20);      // Added new
+
+
     _names->fillCanvas(0);
     uint8_t language = GetLanguage();
     _names->drawString("WLAN", 20 + 46 + 3 * 136, 16);
@@ -260,6 +295,13 @@ void Frame_Main::AppName(m5epd_update_mode_t mode)
         _names->drawString("LifeGame", 20 + 46 + 3 * 136, 16);
     }
     _names->pushCanvas(0, 337, mode);
+    
+
+    //New line for writing app name on the 3rd row, but only for 1 icon with a custom canvas 
+    _name_single->fillCanvas(0);            
+    _name_single->drawString("blukiiHUB", 20 + 46, 16);
+    _name_single->pushCanvas(0, 488, mode);
+    
 }
 
 void Frame_Main::StatusBar(m5epd_update_mode_t mode)
@@ -321,7 +363,7 @@ int Frame_Main::init(epdgui_args_vector_t &args)
 {
     _is_run = 1;
     M5.EPD.WriteFullGram4bpp(GetWallpaper());
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 9; i++)
     {
         EPDGUI_AddObject(_key[i]);
     }
