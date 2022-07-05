@@ -233,7 +233,7 @@ void SysInit_Loading(void *pvParameters)
     Info.setTextDatum(CC_DATUM);
     Info.setTextColor(15);
 
-    M5.EPD.WritePartGram4bpp(92, 182, 356, 194, ImageResource_blukiihub_logo_356x194);
+    M5.EPD.WritePartGram4bpp(10, 182, 520, 283, ImageResource_blukiihub_logo_520x283);
     M5.EPD.UpdateFull(UPDATE_MODE_GC16);
 
     int i = 0;
