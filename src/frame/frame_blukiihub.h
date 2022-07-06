@@ -11,14 +11,17 @@ public:
     ~Frame_BlukiiHub();
     int init(epdgui_args_vector_t &args);
 
+    M5EPD_Canvas *_blukiis_found_result_canvas;
+
 private:
+
+    int device_counter;
+    M5EPD_Canvas *_blukiis_found_canvas;
 
     EPDGUI_Button *_key_connect_wlan;
     EPDGUI_Button *_key_scan_blukiis;
 
-
-    int device_counter;
-    M5EPD_Canvas *_blukiis_found_canvas;
 };
+
 
 #endif //_FRAME_BLUKIIHUB_H_
