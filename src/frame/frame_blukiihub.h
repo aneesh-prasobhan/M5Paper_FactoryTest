@@ -11,7 +11,6 @@ public:
     ~Frame_BlukiiHub();
     int init(epdgui_args_vector_t &args);
 
-    M5EPD_Canvas *_blukiis_found_result_canvas;
 
 private:
 
