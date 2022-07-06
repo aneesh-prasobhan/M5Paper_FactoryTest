@@ -1,5 +1,5 @@
 #include "frame_blukiihub.h"
-#include <Wifi.h>
+#include <WiFi.h>
 
 #define KEY_W 92
 #define KEY_H 92
@@ -29,27 +29,44 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
     info.setTextColor(0);
     info.setTextDatum(CC_DATUM);
 
+    char ssid[] = "HSW-WLAN";
+    char pass[] = "wMqH0YAq9XAqVJq8GK";
+
     if(WiFi.status() != WL_CONNECTED)
     {
-
+        Serial.println("Drawing Connecting"); 
         info.drawString("Connecting", 150, 55);
+        Serial.println("Drew Connecting"); 
         info.pushCanvas(120, 430, UPDATE_MODE_GL16);
+        Serial.println("Pushed canvas"); 
         M5.EPD.WriteFullGram4bpp(GetWallpaper());
-        title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-        tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
-        EPDGUI_Draw(UPDATE_MODE_NONE);
-        while(!M5.TP.avaliable());
-        M5.EPD.UpdateFull(UPDATE_MODE_GL16);
         
-        WiFi.disconnect();
-        WiFi.begin("HSW-WLAN","wMqH0YAq9XAqVJq8GK");
-        uint32_t start_time = millis();
+        Serial.println("Wrote fullgram wallpaper");
+        //title->pushCanvas(0, 8, UPDATE_MODE_NONE);
+        //Serial.println("Pushed canvas title");
+       // tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
+        //Serial.println("Pushed canvas Time zone");
+        EPDGUI_Draw(UPDATE_MODE_NONE);
+        Serial.println("EPDGUI Draw mode set");
+        while(!M5.TP.avaliable());
+        Serial.println("checked if M5 TP is available");
+        // M5.EPD.UpdateFull(UPDATE_MODE_GL16);        // This is where it refreshes the entire display.
+        // Serial.println("Full update");      
+        delay(5000);
 
+
+        WiFi.disconnect();
+        Serial.println("Disconnected existing wlan");
+        WiFi.begin(ssid,pass);
+        Serial.println("trying to connect to HSW WLAN");
+        uint32_t start_time = millis();
+       Serial.println("Given WLAN begin command");  
         while (WiFi.status() != WL_CONNECTED)
         {
             if (millis() - start_time > 10000)
             { 
-
+                Serial.println("Time Limit Reached");  
+                info.fillCanvas(255);
                 info.drawString("Connection Failed", 150, 55);
                 info.pushCanvas(120, 430, UPDATE_MODE_GL16);
                 M5.EPD.WriteFullGram4bpp(GetWallpaper());
@@ -57,37 +74,51 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
                 tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
                 EPDGUI_Draw(UPDATE_MODE_NONE);
                 while(!M5.TP.avaliable());
-                M5.EPD.UpdateFull(UPDATE_MODE_GL16);
-                return;
+                //M5.EPD.UpdateFull(UPDATE_MODE_GL16);
+                break;
             }
+
         }
+        Serial.println("Broke out from while loop");  
     }
-
-    LoadingAnime_32x32_Start(532 - 15 - 32, 220 + 14);
-    bool ret = SyncNTPTime();
-    LoadingAnime_32x32_Stop();
-    if(ret == 0)
+    if(WiFi.status() == WL_CONNECTED)
     {
-
-        info.drawString("Network Error", 150, 55);
-    
+        Serial.println("COnnected to WLAN"); 
+        
+        info.fillCanvas(255);
+        info.drawString("WLAN Connected", 150, 55);
         info.pushCanvas(120, 430, UPDATE_MODE_GL16);
+
+
+        bool ret = SyncNTPTime();
+        
+        if(ret == 0)
+        {
+            info.fillCanvas(255);
+            info.drawString("Network Error!", 150, 55);
+        
+            info.pushCanvas(120, 430, UPDATE_MODE_GL16);
+        }
+        else
+        {
+            Serial.println("Before Printing Success"); 
+            info.fillCanvas(255);
+            info.drawString("Internet Working!", 150, 55);
+        
+            info.pushCanvas(120, 430, UPDATE_MODE_GL16);
+            Serial.println("After Printing Success"); 
+        }
+
+        Serial.println("Trying to fullgram write"); 
+        M5.EPD.WriteFullGram4bpp(GetWallpaper());
+        Serial.println("After Printing Fullgram"); 
+        //title->pushCanvas(0, 8, UPDATE_MODE_NONE);
+        //tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
+        EPDGUI_Draw(UPDATE_MODE_NONE);
+        while(!M5.TP.avaliable());
+        delay(3000);
+        M5.EPD.UpdateFull(UPDATE_MODE_GL16);
     }
-    else
-    {
-
-        info.drawString("Success", 150, 55);
-    
-        info.pushCanvas(120, 430, UPDATE_MODE_GL16);
-    }
-
-    M5.EPD.WriteFullGram4bpp(GetWallpaper());
-    title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-    tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
-    EPDGUI_Draw(UPDATE_MODE_NONE);
-    while(!M5.TP.avaliable());
-    M5.EPD.UpdateFull(UPDATE_MODE_GL16);
-
 }
 
 Frame_BlukiiHub::Frame_BlukiiHub(void)
