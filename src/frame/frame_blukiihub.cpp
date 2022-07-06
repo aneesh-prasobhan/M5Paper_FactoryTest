@@ -1,18 +1,22 @@
 #include "frame_blukiihub.h"
 #include <WiFi.h>
+#include "blukii_scan.h"
 
 #define KEY_W 92
 #define KEY_H 92
 const uint16_t kBlukiisFoundCanvasY = 300;      // Position of blukiis found results.
-
+static uint16_t devices_found;
 
 
 void key_scan_blukiis_cb(epdgui_args_vector_t &args)
 {
 
-    char buf[3];
-    int ctemp = 25;
-    //sprintf(buf, "%d ", ctemp);
+    devices_found = blukii_scan();      
+
+    // Print number of blukiis here
+
+
+
     return;
 
 }
@@ -29,8 +33,8 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
     info.setTextColor(0);
     info.setTextDatum(CC_DATUM);
 
-    char ssid[] = "HSW-WLAN";
-    char pass[] = "wMqH0YAq9XAqVJq8GK";
+    char hardcoded_ssid[] = "HSW-WLAN";
+    char hardcoded_pass[] = "wMqH0YAq9XAqVJq8GK";
 
     if(WiFi.status() != WL_CONNECTED)
     {
@@ -57,7 +61,7 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
 
         WiFi.disconnect();
         Serial.println("Disconnected existing wlan");
-        WiFi.begin(ssid,pass);
+        WiFi.begin(hardcoded_ssid,hardcoded_pass);
         Serial.println("trying to connect to HSW WLAN");
         uint32_t start_time = millis();
        Serial.println("Given WLAN begin command");  
@@ -69,12 +73,14 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
                 info.fillCanvas(255);
                 info.drawString("Connection Failed", 150, 55);
                 info.pushCanvas(120, 430, UPDATE_MODE_GL16);
+                delay(3000);
                 M5.EPD.WriteFullGram4bpp(GetWallpaper());
-                title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-                tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
+                //title->pushCanvas(0, 8, UPDATE_MODE_NONE);
+                //tzone->pushCanvas(4, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
                 EPDGUI_Draw(UPDATE_MODE_NONE);
                 while(!M5.TP.avaliable());
-                //M5.EPD.UpdateFull(UPDATE_MODE_GL16);
+                M5.EPD.UpdateFull(UPDATE_MODE_GL16);
+                WiFi.disconnect();      // Need to use disconnect here otherwise WiFi search Frame won't work
                 break;
             }
 
@@ -98,6 +104,7 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
             info.drawString("Network Error!", 150, 55);
         
             info.pushCanvas(120, 430, UPDATE_MODE_GL16);
+            
         }
         else
         {
