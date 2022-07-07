@@ -1,6 +1,7 @@
 #include "frame_blukiihub.h"
 #include <WiFi.h>
 #include "blukii_scan.h"
+#include "./resources/wlan_credentials.h"
 
 #define KEY_W 92
 #define KEY_H 92
@@ -15,9 +16,9 @@ void key_scan_blukiis_cb(epdgui_args_vector_t &args)
 
     // Print number of blukiis here
     _blukiis_found_canvas = new M5EPD_Canvas(&M5.EPD);
-    _blukiis_found_canvas->createCanvas(540, 90);
+    _blukiis_found_canvas->createCanvas(540, 200);
     _blukiis_found_canvas->fillCanvas(0);
-    _blukiis_found_canvas->setTextSize(26);
+    _blukiis_found_canvas->setTextSize(36);
     _blukiis_found_canvas->setTextColor(15);
     _blukiis_found_canvas->setTextDatum(CL_DATUM);
 
@@ -41,8 +42,6 @@ void key_connect_wlan_cb(epdgui_args_vector_t &args)
     info.setTextColor(0);
     info.setTextDatum(CC_DATUM);
 
-    char hardcoded_ssid[] = "HSW-WLAN";
-    char hardcoded_pass[] = "wMqH0YAq9XAqVJq8GK";
 
     if(WiFi.status() != WL_CONNECTED)
     {
