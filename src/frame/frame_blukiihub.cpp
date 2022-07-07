@@ -7,25 +7,23 @@
 #define KEY_H 92
 const uint16_t kBlukiisFoundCanvasY = 300;      // Position of blukiis found results.
 static uint16_t devices_found;
-M5EPD_Canvas *_blukiis_found_canvas;
+M5EPD_Canvas *_blukiis_found_text_canvas;
 
 void key_scan_blukiis_cb(epdgui_args_vector_t &args)
-{
-
-    devices_found = blukii_scan();      
+{     
 
     // Print number of blukiis here
-    _blukiis_found_canvas = new M5EPD_Canvas(&M5.EPD);
-    _blukiis_found_canvas->createCanvas(540, 200);
-    _blukiis_found_canvas->fillCanvas(0);
-    _blukiis_found_canvas->setTextSize(36);
-    _blukiis_found_canvas->setTextColor(15);
-    _blukiis_found_canvas->setTextDatum(CL_DATUM);
+    _blukiis_found_text_canvas = new M5EPD_Canvas(&M5.EPD);
+    _blukiis_found_text_canvas->createCanvas(270, 90);
+    _blukiis_found_text_canvas->fillCanvas(0);
+    _blukiis_found_text_canvas->setTextSize(26);
+    _blukiis_found_text_canvas->setTextColor(15);
+    _blukiis_found_text_canvas->setTextDatum(CL_DATUM);
 
-    _blukiis_found_canvas->drawString("blukiis FOUND = ", 15, 35);
-    _blukiis_found_canvas->pushCanvas(0, kBlukiisFoundCanvasY, UPDATE_MODE_NONE);
+    _blukiis_found_text_canvas->drawString("blukiis FOUND = ", 15, 35);
+    _blukiis_found_text_canvas->pushCanvas(0, kBlukiisFoundCanvasY, UPDATE_MODE_A2);
 
-
+    devices_found = blukii_scan(); 
     return;
 
 }
@@ -146,7 +144,7 @@ Frame_BlukiiHub::Frame_BlukiiHub(void)
     String device_couter_string = String(device_counter);
 
 
-    _key_connect_wlan->setBMPButton("  Connect HSW-WLAN", "\u25B6", ImageResource_item_icon_wifi_3_32x32);
+    _key_connect_wlan->setBMPButton("  Connect to HSW-WLAN", "\u25B6", ImageResource_item_icon_wifi_3_32x32);
     _key_scan_blukiis->setBMPButton("  Scan blukiis & Push to Cloud", "\u25B6", ImageResource_item_icon_ntptime_32x32);
 
     exitbtn("Home");
