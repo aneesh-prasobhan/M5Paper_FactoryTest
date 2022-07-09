@@ -167,6 +167,9 @@ void SysInit_Start(void)
         //Added
         Frame_BlukiiHub *frame_blukiihub = new Frame_BlukiiHub();
         EPDGUI_AddFrame("Frame_BlukiiHub", frame_blukiihub);
+        //Added for zenreader
+        Frame_ZenReader *frame_zenreader = new Frame_ZenReader();
+        EPDGUI_AddFrame("Frame_ZenReader", frame_zenreader);
 
         if(isWiFiConfiged())
         {

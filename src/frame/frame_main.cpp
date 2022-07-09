@@ -8,6 +8,8 @@
 #include "frame_compare.h"
 #include "frame_home.h"
 #include "frame_blukiihub.h"
+#include "frame_zenreader.h"
+
 
 
 enum
@@ -20,7 +22,8 @@ enum
     kKeyCompare,
     kKeyHome,
     kKeyLifeGame,
-    kKeyBlukiiHub
+    kKeyBlukiiHub,
+    kKeyZenReader
 };
 
 #define KEY_W 92
@@ -130,6 +133,19 @@ void key_blukiihub_cb(epdgui_args_vector_t &args)
     *((int*)(args[0])) = 0;
 }
 
+//ZenReader
+void key_zenreader_cb(epdgui_args_vector_t &args)
+{
+    Frame_Base *frame = EPDGUI_GetFrame("Frame_ZenReader");
+    if(frame == NULL)
+    {
+        frame = new Frame_ZenReader();
+        EPDGUI_AddFrame("Frame_ZenReader", frame);
+    }
+    EPDGUI_PushFrame(frame);
+    *((int*)(args[0])) = 0;
+}
+
 Frame_Main::Frame_Main(void): Frame_Base(false)
 {
     _frame_name = "Frame_Main";
@@ -147,6 +163,11 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
     _name_single = new M5EPD_Canvas(&M5.EPD);
     _name_single->createCanvas(135, 32);
     _name_single->setTextDatum(CC_DATUM);
+
+    //Creating custom canvas with 1 icon length for zen reader
+    _name_zenreader = new M5EPD_Canvas(&M5.EPD);
+    _name_zenreader->createCanvas(135, 32);
+    _name_zenreader->setTextDatum(CC_DATUM);
     
     for(int i = 0; i < 4; i++)
     {
@@ -158,7 +179,7 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
         _key[i + 4] = new EPDGUI_Button("测试", 20 + i * 136, 240, KEY_W, KEY_H);
     }
 
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < 2; i++)
     {
         _key[i + 8] = new EPDGUI_Button("测试", 20 + i * 136, 390, KEY_W, KEY_H);
     }
@@ -218,6 +239,14 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
     _key[kKeyBlukiiHub]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
     _key[kKeyBlukiiHub]->Bind(EPDGUI_Button::EVENT_RELEASED, key_blukiihub_cb);
 
+    //ZenReader
+    _key[kKeyZenReader]->CanvasNormal()->pushImage(0, 0, 92, 92, ImageResource_zenreader_92x92);
+    *(_key[kKeyZenReader]->CanvasPressed()) = *(_key[kKeyZenReader]->CanvasNormal());
+    _key[kKeyZenReader]->CanvasPressed()->ReverseColor();
+    _key[kKeyZenReader]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
+    _key[kKeyZenReader]->Bind(EPDGUI_Button::EVENT_RELEASED, key_blukiihub_cb);
+
+
 
     _time = 0;
     _next_update_time = 0;
@@ -226,7 +255,7 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
 
 Frame_Main::~Frame_Main(void)
 {
-    for(int i = 0; i < 9; i++)
+    for(int i = 0; i < 10; i++)
     {
         delete _key[i];
     }
@@ -246,8 +275,15 @@ void Frame_Main::AppName(m5epd_update_mode_t mode)
         _name_single->createRender(20, 26);
     }
 
+    if(!_name_zenreader->isRenderExist(20))
+    {
+        _name_zenreader->createRender(20, 26);
+    }
+
     _names->setTextSize(20);
     _name_single->setTextSize(20);      // Added new
+    _name_zenreader->setTextSize(20);      // Added new
+
 
 
     _names->fillCanvas(0);
@@ -302,6 +338,10 @@ void Frame_Main::AppName(m5epd_update_mode_t mode)
     _name_single->fillCanvas(0);            
     _name_single->drawString("blukiiHUB", 20 + 46, 16);
     _name_single->pushCanvas(0, 488, mode);
+
+    _name_zenreader->fillCanvas(0);            
+    _name_zenreader->drawString("ZenReader", 20 + 46 + 136, 16);
+    _name_zenreader->pushCanvas(110, 488, mode);
     
 }
 
@@ -364,7 +404,7 @@ int Frame_Main::init(epdgui_args_vector_t &args)
 {
     _is_run = 1;
     M5.EPD.WriteFullGram4bpp(GetWallpaper());
-    for(int i = 0; i < 9; i++)
+    for(int i = 0; i < 10; i++)
     {
         EPDGUI_AddObject(_key[i]);
     }
