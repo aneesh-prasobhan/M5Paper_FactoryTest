@@ -33,3 +33,5 @@
 
 .pio
 .vscode
+/src/frame/blukii_scan.h
+/src/resources/wlan_credentials.h

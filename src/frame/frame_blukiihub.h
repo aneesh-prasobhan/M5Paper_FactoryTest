@@ -19,6 +19,7 @@ private:
 
     EPDGUI_Button *_key_connect_wlan;
     EPDGUI_Button *_key_scan_blukiis;
+    EPDGUI_Button *_key_scan_blukiis2;
 
 };
 
