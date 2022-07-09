@@ -5,7 +5,7 @@
 
 #define KEY_W 92
 #define KEY_H 92
-const uint16_t kBlukiisFoundCanvasY = 300;      // Position of blukiis found results.
+const uint16_t kScanStatusCanvasY = 330;      // Position of blukiis found results.
 
 M5EPD_Canvas *_blukiis_found_text_canvas;
 M5EPD_Canvas *_scan_status_canvas;
