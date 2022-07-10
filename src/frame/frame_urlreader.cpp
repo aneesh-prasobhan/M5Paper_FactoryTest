@@ -26,7 +26,8 @@ Frame_urlReader::Frame_urlReader(String url)
 {
     _frame_name = "Frame_urlReader";
     _url = url;
-    _text_size = GetTextSize();
+    //_text_size = GetTextSize();
+    _text_size = 26;
 
     _canvas_prev = new M5EPD_Canvas(&M5.EPD);
     _canvas_current = new M5EPD_Canvas(&M5.EPD);
@@ -85,7 +86,13 @@ uint32_t Frame_urlReader::renderText(uint32_t cursor, uint32_t length, M5EPD_Can
     _txt_file.seek(cursor, SeekSet);
     uint32_t readlen = _txt_file.readBytes(buf, length);
     buf[readlen] = '\0';
+    log_d("trying to Print RSS big chunk Text");
     canvas->print(buf);
+    log_d("After RSS print");
+    //M5.EPD.UpdateFull(UPDATE_MODE_GL16);
+    log_d("After Updating");
+   
+
     return canvas->getExceedOffset();
 }
 
