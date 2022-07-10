@@ -95,13 +95,20 @@ void SysInit_Start(void)
     {
         is_factory_test = true;
         SetInitStatus(0, 0);
-        // log_e("Failed to initialize SD card.");
+        log_e("Failed to initialize SD card.");
         // SysInit_UpdateInfo("[ERROR] Failed to initialize SD card.");
         // WaitForUser();
     }
     else
     {
+        log_d("SD card initialized OK.");
         is_factory_test = SD.exists("/__factory_test_flag__");
+
+        if (!SD.exists("/artcache") && !SD.mkdir("/artcache")) {
+            log_e("/artcache doesn't exist and dkdir /artcache failed!");
+        } else {
+            log_d("/artcache OK!");
+        }
     }
 
     SysInit_UpdateInfo("Initializing Touch pad...");
@@ -168,8 +175,8 @@ void SysInit_Start(void)
         Frame_BlukiiHub *frame_blukiihub = new Frame_BlukiiHub();
         EPDGUI_AddFrame("Frame_BlukiiHub", frame_blukiihub);
         //Added for zenreader
-        Frame_ZenReader *frame_zenreader = new Frame_ZenReader();
-        EPDGUI_AddFrame("Frame_ZenReader", frame_zenreader);
+        //Frame_ZenReader *frame_zenreader = new Frame_ZenReader();
+        //EPDGUI_AddFrame("Frame_ZenReader", frame_zenreader);
 
         if(isWiFiConfiged())
         {

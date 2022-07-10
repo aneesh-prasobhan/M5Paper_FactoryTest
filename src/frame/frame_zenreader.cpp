@@ -1,241 +1,124 @@
 #include "frame_zenreader.h"
-#include <WiFi.h>
-//#include "blukii_scan.h"
-//#include "./resources/wlan_credentials.h"
 
-#define KEY_W 92
-#define KEY_H 92
-const uint16_t kScanStatusCanvasY = 330;      // Position of blukiis found results.
-const uint16_t kBlukiisFoundResultCanvasY = 300; //for testing
+#include "frame_feedcontent.h"
 
-M5EPD_Canvas *_blukiis_found_text_canvasxx;
-M5EPD_Canvas *_scan_status_canvasxx;
+#define MAX_BTN_NUM     12
 
-int scan_Interval_1xx = 10;
-int scan_Interval_2xx = 60;
+void key_feedslisting_feed_cb(epdgui_args_vector_t &args)
+{
+    Frame_Base *frame = new Frame_FeedContent(((EPDGUI_Button*)(args[0]))->GetCustomString());
+    EPDGUI_PushFrame(frame);
+    *((int*)(args[1])) = 0;
+    log_d("%s", ((EPDGUI_Button*)(args[0]))->GetCustomString().c_str());
+}
 
-void key_scan_blukiis_cbxx(epdgui_args_vector_t &args)
-{     
+void key_feedslisting_exit_cb(epdgui_args_vector_t &args)
+{
+    EPDGUI_PopFrame(true);
+    *((int*)(args[0])) = 0;
+}
 
-    M5EPD_Canvas *title = (M5EPD_Canvas*)(args[0]);
+Frame_ZenReader::Frame_ZenReader(String path)
+{
+    _frame_name = "Frame_ZenReader";
+    _path = path;
 
-    if(WiFi.status() == WL_CONNECTED)
+    uint8_t language = GetLanguage();
+    _canvas_title->setTextDatum(CR_DATUM);
+    if (language == LANGUAGE_JA)
     {
-        // Print scan text canvas and go to scan function
-        _blukiis_found_text_canvasxx = new M5EPD_Canvas(&M5.EPD);
-        _blukiis_found_text_canvasxx->createCanvas(270, 40);
-        _blukiis_found_text_canvasxx->fillCanvas(0);
-        _blukiis_found_text_canvasxx->setTextSize(26);
-        _blukiis_found_text_canvasxx->setTextColor(15);
-        _blukiis_found_text_canvasxx->setTextDatum(CL_DATUM);
-
-
-        _scan_status_canvasxx = new M5EPD_Canvas(&M5.EPD);
-        _scan_status_canvasxx->createCanvas(350, 40);
-        _scan_status_canvasxx->fillCanvas(0);
-        _scan_status_canvasxx->setTextSize(26);
-        _scan_status_canvasxx->setTextColor(15);
-        _scan_status_canvasxx->setTextDatum(CL_DATUM);
-
-        _scan_status_canvasxx->drawString("Scan Started- Please Wait..", 15, 30);
-        _scan_status_canvasxx->pushCanvas(0, kScanStatusCanvasY, UPDATE_MODE_A2);
-
-        _blukiis_found_text_canvasxx->drawString("blukiis FOUND = ", 15, 30);
-        _blukiis_found_text_canvasxx->pushCanvas(0, kBlukiisFoundResultCanvasY, UPDATE_MODE_A2);
-
-        return;      // blukii scanning loop
-
-        _scan_status_canvasxx->fillCanvas(0);
-        _scan_status_canvasxx->drawString("Scan and POST Finished", 15, 30);
-        _scan_status_canvasxx->pushCanvas(0, kScanStatusCanvasY, UPDATE_MODE_A2);
+        exitbtn("ホーム");
+    }
+    else if (language == LANGUAGE_ZH)
+    {
+        exitbtn("主页");
     }
     else
     {
-        // Print scan text canvas and go to scan function
-        _blukiis_found_text_canvasxx = new M5EPD_Canvas(&M5.EPD);
-        _blukiis_found_text_canvasxx->createCanvas(270, 40);
-        _blukiis_found_text_canvasxx->fillCanvas(0);
-        _blukiis_found_text_canvasxx->setTextSize(26);
-        _blukiis_found_text_canvasxx->setTextColor(15);
-        _blukiis_found_text_canvasxx->setTextDatum(CL_DATUM);
-
-        _blukiis_found_text_canvasxx->drawString("No WLAN Connection", 15, 30);
-        _blukiis_found_text_canvasxx->pushCanvas(0, kBlukiisFoundResultCanvasY, UPDATE_MODE_A2);
-
+        exitbtn("Home");
     }
-    title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-    //*((int*)(args[0])) = 0;
-    EPDGUI_Draw(UPDATE_MODE_NONE);
-    while(!M5.TP.avaliable());
-    M5.EPD.UpdateFull(UPDATE_MODE_GL16);
-    return;
+    _canvas_title->drawString("Feeds Index", 540 - 15, 34);
 
+    _key_exit->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void *)(&_is_run));
+    _key_exit->Bind(EPDGUI_Button::EVENT_RELEASED, &key_feedslisting_exit_cb);
 }
 
-void key_connect_wlan_cbxx(epdgui_args_vector_t &args)
+void Frame_ZenReader::listFeeds(fs::FS &fs, const char *filename)
 {
+    std::vector<struct rssFeed_t> sites;
 
-    M5EPD_Canvas info(&M5.EPD);
-    M5EPD_Canvas *title = (M5EPD_Canvas*)(args[0]);
-    info.createCanvas(300, 100);
-    info.fillCanvas(15);
-    info.setTextSize(26);
-    info.setTextColor(0);
-    info.setTextDatum(CC_DATUM);
+    // TODO: Read this list from a text file or something
 
+    struct rssFeed_t hn;
+    hn.name = "Hacker News Frontpage";
+    hn.url = "https://hnrss.org/frontpage";
+    sites.push_back(hn);
 
-    if(WiFi.status() != WL_CONNECTED)
+    hn.name = "Huan Truong's blog";
+    hn.url = "http://www.tnhh.net/feed.xml";
+    sites.push_back(hn);
+
+    hn.name = "VnExpress";
+    hn.url = "https://vnexpress.net/rss/tin-moi-nhat.rss";
+    sites.push_back(hn);
+
+    hn.name = "Hackaday";
+    hn.url = "http://feeds.feedburner.com/hackaday";
+    sites.push_back(hn);
+
+    for(int n = 0; n < sites.size(); n++)
     {
-        Serial.println("Drawing Connecting"); 
-        info.drawString("Connecting", 150, 55);
-        Serial.println("Drew Connecting"); 
-        info.pushCanvas(120, 430, UPDATE_MODE_GL16);
-        Serial.println("Pushed canvas"); 
-        M5.EPD.WriteFullGram4bpp(GetWallpaper());
-        
-        Serial.println("Wrote fullgram wallpaper");
-
-        title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-        EPDGUI_Draw(UPDATE_MODE_NONE);
-        Serial.println("EPDGUI Draw mode set");
-        while(!M5.TP.avaliable());
-        Serial.println("checked if M5 TP is available");
-        // M5.EPD.UpdateFull(UPDATE_MODE_GL16);        // This is where it refreshes the entire display.
-        // Serial.println("Full update");      
-        //delay(5000);
-
-        WiFi.disconnect();
-        Serial.println("Disconnected existing wlan");
-        WiFi.begin("WN-1-3","unDWWhY8!n4TvTr%KQJw");
-        Serial.println("trying to connect to HSW WLAN");
-        uint32_t start_time = millis();
-       Serial.println("Given WLAN begin command");  
-        while (WiFi.status() != WL_CONNECTED)
+        if(_key_feed.size() > MAX_BTN_NUM)
         {
-            if (millis() - start_time > 10000)
-            { 
-                Serial.println("Time Limit Reached");  
-                info.fillCanvas(255);
-                info.drawString("Connection Failed", 150, 55);
-                info.pushCanvas(120, 430, UPDATE_MODE_GL16);
-                delay(3000);
-                M5.EPD.WriteFullGram4bpp(GetWallpaper());
-
-                title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-                EPDGUI_Draw(UPDATE_MODE_NONE);
-                while(!M5.TP.avaliable());
-                M5.EPD.UpdateFull(UPDATE_MODE_GL16);
-                WiFi.disconnect();      // Need to use disconnect here otherwise WiFi search Frame won't work
-                break;
-            }
-
+            break;
         }
-        Serial.println("Broke out from while loop");  
+        EPDGUI_Button *btn = new EPDGUI_Button(4, 100 + _key_feed.size() * 60, 532, 61);
+        _key_feed.push_back(btn);
+
+        btn->CanvasNormal()->fillCanvas(0);
+        btn->CanvasNormal()->drawRect(0, 0, 532, 61, 15);
+        btn->CanvasNormal()->setTextSize(26);
+        btn->CanvasNormal()->setTextDatum(CL_DATUM);
+        btn->CanvasNormal()->setTextColor(15);
+        btn->CanvasNormal()->drawString(sites[n].name, 47 + 13, 35);
+        btn->SetCustomString(sites[n].url);
+        btn->CanvasNormal()->setTextDatum(CR_DATUM);
+        btn->CanvasNormal()->pushImage(15, 14, 32, 32, ImageResource_item_icon_file_floder_32x32);
+        btn->CanvasNormal()->pushImage(532 - 15 - 32, 14, 32, 32, ImageResource_item_icon_arrow_r_32x32);
+        *(btn->CanvasPressed()) = *(btn->CanvasNormal());
+        btn->CanvasPressed()->ReverseColor();
+
+        btn->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, btn);
+        btn->AddArgs(EPDGUI_Button::EVENT_RELEASED, 1, (void*)(&_is_run));
+        btn->Bind(EPDGUI_Button::EVENT_RELEASED, key_feedslisting_feed_cb);
     }
-    if(WiFi.status() == WL_CONNECTED)
-    {
-        Serial.println("Connected to WLAN"); 
-        
-        info.fillCanvas(255);
-        info.drawString("WLAN Connected", 150, 55);
-        info.pushCanvas(120, 430, UPDATE_MODE_GL16);
-
-
-        bool ret = SyncNTPTime();
-        
-        if(ret == 0)
-        {
-            info.fillCanvas(255);
-            info.drawString("Network Error!", 150, 55);
-        
-            info.pushCanvas(120, 430, UPDATE_MODE_GL16);
-            
-        }
-        else
-        {
-            Serial.println("Before Printing Success"); 
-            info.fillCanvas(255);
-            info.drawString("Internet Working!", 150, 55);
-        
-            info.pushCanvas(120, 430, UPDATE_MODE_GL16);
-            Serial.println("After Printing Success"); 
-        }
-
-        Serial.println("Trying to fullgram write"); 
-        M5.EPD.WriteFullGram4bpp(GetWallpaper());
-        Serial.println("After Printing Fullgram"); 
-
-        title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-        EPDGUI_Draw(UPDATE_MODE_NONE);
-        while(!M5.TP.avaliable());
-        delay(500);
-        M5.EPD.UpdateFull(UPDATE_MODE_GL16);
-    }
-    //*((int*)(args[0])) = 0;
 }
-
-Frame_ZenReader::Frame_ZenReader(void)
-{
-    _frame_name = "Frame_ZenReader";
-
-
-    _key_connect_wlanxx = new EPDGUI_Button(4, 100, 532, 61);
-    _key_scan_blukiisxx = new EPDGUI_Button(4, 160, 532, 61);
-    _key_scan_blukiisxx2 = new EPDGUI_Button(4, 220, 532, 61);
-
-
-
-    String device_couter_string = String(device_counter);
-
-
-    _key_connect_wlanxx->setBMPButton("  Connect to HSW-WLAN", "\u25B6", ImageResource_item_icon_wifi_3_32x32);
-    _key_scan_blukiisxx->setBMPButton("  Scan blukiis (10 sec) & Push to Cloud", "\u25B6", ImageResource_item_icon_ntptime_32x32);
-    _key_scan_blukiisxx2->setBMPButton("  Scan blukiis (60 sec) & Push to Cloud", "\u25B6", ImageResource_item_icon_ntptime_32x32);
-
-    exitbtn("Home");
-
-    _canvas_title->drawString("blukii HUB", 270, 34);
-    //_canvas_title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-
-    _key_exit->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
-    _key_exit->Bind(EPDGUI_Button::EVENT_RELEASED, &Frame_Base::exit_cb);
-
-
-    //_key_connect_wlanxx->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
-    _key_connect_wlanxx->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, _canvas_title);
-    _key_connect_wlanxx->Bind(EPDGUI_Button::EVENT_RELEASED, &key_connect_wlan_cbxx);
-
-
-    _key_scan_blukiisxx->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, _canvas_title);
-    _key_scan_blukiisxx->AddArgs(EPDGUI_Button::EVENT_RELEASED, 1, (void*)(&scan_Interval_1xx));
-    _key_scan_blukiisxx->Bind(EPDGUI_Button::EVENT_RELEASED, &key_scan_blukiis_cbxx);
-
-    _key_scan_blukiisxx2->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, _canvas_title);
-    _key_scan_blukiisxx2->AddArgs(EPDGUI_Button::EVENT_RELEASED, 1, (void*)(&scan_Interval_2xx));
-    _key_scan_blukiisxx2->Bind(EPDGUI_Button::EVENT_RELEASED, &key_scan_blukiis_cbxx);
-
-}
-
-
-
 
 Frame_ZenReader::~Frame_ZenReader(void)
 {
-    delete _key_connect_wlanxx;
-    delete _key_scan_blukiisxx;
-    delete _key_scan_blukiisxx2;
+    for(int i = 0; i < _key_feed.size(); i++)
+    {
+        delete _key_feed[i];
+    }
 }
 
 int Frame_ZenReader::init(epdgui_args_vector_t &args)
 {
     _is_run = 1;
+
+    if(_key_feed.size() == 0)
+    {
+        listFeeds(SD, _path.c_str());
+    }
+    
     M5.EPD.WriteFullGram4bpp(GetWallpaper());
     _canvas_title->pushCanvas(0, 8, UPDATE_MODE_NONE);
-    
-    EPDGUI_AddObject(_key_connect_wlanxx);
-    EPDGUI_AddObject(_key_scan_blukiisxx);
-    EPDGUI_AddObject(_key_scan_blukiisxx2);
     EPDGUI_AddObject(_key_exit);
+
+    for(int i = 0; i < _key_feed.size(); i++)
+    {
+        EPDGUI_AddObject(_key_feed[i]);
+    }
 
     return 3;
 }

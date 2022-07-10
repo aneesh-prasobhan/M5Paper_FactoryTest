@@ -9,6 +9,7 @@
 #include "frame_home.h"
 #include "frame_blukiihub.h"
 #include "frame_zenreader.h"
+#include "frame_fileindex.h"
 
 
 
@@ -139,7 +140,7 @@ void key_zenreader_cb(epdgui_args_vector_t &args)
     Frame_Base *frame = EPDGUI_GetFrame("Frame_ZenReader");
     if(frame == NULL)
     {
-        frame = new Frame_ZenReader();
+        frame = new Frame_ZenReader("foo.txt");
         EPDGUI_AddFrame("Frame_ZenReader", frame);
     }
     EPDGUI_PushFrame(frame);
@@ -244,7 +245,7 @@ Frame_Main::Frame_Main(void): Frame_Base(false)
     *(_key[kKeyZenReader]->CanvasPressed()) = *(_key[kKeyZenReader]->CanvasNormal());
     _key[kKeyZenReader]->CanvasPressed()->ReverseColor();
     _key[kKeyZenReader]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void*)(&_is_run));
-    _key[kKeyZenReader]->Bind(EPDGUI_Button::EVENT_RELEASED, key_blukiihub_cb);
+    _key[kKeyZenReader]->Bind(EPDGUI_Button::EVENT_RELEASED, key_zenreader_cb);
 
 
 
