@@ -3,24 +3,24 @@
 
 #include "frame_base.h"
 #include "../epdgui/epdgui.h"
+#include <SD.h>
+
+struct rssFeed_t {
+    String name;
+    String url;
+};
 
 class Frame_ZenReader : public Frame_Base
 {
 public:
-    Frame_ZenReader();
+    Frame_ZenReader(String path);
     ~Frame_ZenReader();
+    void listFeeds(fs::FS &fs, const char *filename);
     int init(epdgui_args_vector_t &args);
 
-
 private:
-
-    int device_counter;
-//    M5EPD_Canvas *_blukiis_found_canvas;
-
-    EPDGUI_Button *_key_connect_wlanxx;
-    EPDGUI_Button *_key_scan_blukiisxx;
-    EPDGUI_Button *_key_scan_blukiisxx2;
-
+    std::vector<EPDGUI_Button*> _key_feed;
+    String _path;
 };
 
 
